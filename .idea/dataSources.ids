@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="dataSourceStorage">
+  <data-source name="MySQL - test@192.168.56.101" uuid="730f0a6c-b420-47ed-bc78-eb34216bf705">
+    <database-info product="MySQL" version="5.6.22-1+deb.sury.org~trusty+1" jdbc-version="4.0" driver-name="MySQL Connector Java" driver-version="mysql-connector-java-5.1.29 ( Revision: alexander.soklakov@oracle.com-20140120140810-s44574olh90i6i4l )">
+      <extra-name-characters>#@</extra-name-characters>
+      <identifier-quote-string>`</identifier-quote-string>
+    </database-info>
+    <case-sensitivity plain-identifiers="exact" quoted-identifiers="exact"/>
+    <schema name="" catalog="test"/>
+    <table name="j_user_usergroup_map" schema="" catalog="test" type="TABLE">
+      <column name="user_id" sqlType="INT UNSIGNED" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="Rm9yZWlnbiBLZXkgdG8gal91c2Vycy5pZA=="/>
+      <column name="group_id" sqlType="INT UNSIGNED" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="Rm9yZWlnbiBLZXkgdG8gal91c2VyZ3JvdXBzLmlk"/>
+      <primary-key name="PRIMARY" columns="user_id,group_id"/>
+    </table>
+    <table name="j_usergroups" schema="" catalog="test" type="TABLE">
+      <column name="id" sqlType="INT UNSIGNED" precision="10" scale="0" nullable="false" jdbcType="4" remarks="UHJpbWFyeSBLZXk=" autoIncrement="true"/>
+      <column name="parent_id" sqlType="INT UNSIGNED" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="QWRqYWNlbmN5IExpc3QgUmVmZXJlbmNlIElk"/>
+      <column name="lft" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="TmVzdGVkIHNldCBsZnQu"/>
+      <column name="rgt" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="TmVzdGVkIHNldCByZ3Qu"/>
+      <column name="title" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="idx_usergroup_parent_title_lookup" unique="true" columns="parent_id,title"/>
+      <index name="idx_usergroup_adjacency_lookup" unique="false" columns="parent_id"/>
+      <index name="idx_usergroup_nested_set_lookup" unique="false" columns="lft,rgt"/>
+      <index name="idx_usergroup_title_lookup" unique="false" columns="title"/>
+    </table>
+    <table name="j_users" schema="" catalog="test" type="TABLE">
+      <column name="id" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" autoIncrement="true"/>
+      <column name="name" sqlType="VARCHAR" precision="255" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="username" sqlType="VARCHAR" precision="150" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="email" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="password" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="block" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA=="/>
+      <column name="sendEmail" sqlType="TINYINT" precision="3" scale="0" nullable="true" jdbcType="-6" def="MA=="/>
+      <column name="registerDate" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="JzAwMDAtMDAtMDAgMDA6MDA6MDAn"/>
+      <column name="lastvisitDate" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="JzAwMDAtMDAtMDAgMDA6MDA6MDAn"/>
+      <column name="activation" sqlType="VARCHAR" precision="100" scale="0" nullable="false" jdbcType="12" def="Jyc="/>
+      <column name="params" sqlType="TEXT" precision="65535" scale="0" nullable="false" jdbcType="-1"/>
+      <column name="lastResetTime" sqlType="DATETIME" precision="19" scale="0" nullable="false" jdbcType="93" def="JzAwMDAtMDAtMDAgMDA6MDA6MDAn" remarks="RGF0ZSBvZiBsYXN0IHBhc3N3b3JkIHJlc2V0"/>
+      <column name="resetCount" sqlType="INT" precision="10" scale="0" nullable="false" jdbcType="4" def="MA==" remarks="Q291bnQgb2YgcGFzc3dvcmQgcmVzZXRzIHNpbmNlIGxhc3RSZXNldFRpbWU="/>
+      <column name="otpKey" sqlType="VARCHAR" precision="1000" scale="0" nullable="false" jdbcType="12" def="Jyc=" remarks="VHdvIGZhY3RvciBhdXRoZW50aWNhdGlvbiBlbmNyeXB0ZWQga2V5cw=="/>
+      <column name="otep" sqlType="VARCHAR" precision="1000" scale="0" nullable="false" jdbcType="12" def="Jyc=" remarks="T25lIHRpbWUgZW1lcmdlbmN5IHBhc3N3b3Jkcw=="/>
+      <column name="requireReset" sqlType="TINYINT" precision="3" scale="0" nullable="false" jdbcType="-6" def="MA==" remarks="UmVxdWlyZSB1c2VyIHRvIHJlc2V0IHBhc3N3b3JkIG9uIG5leHQgbG9naW4="/>
+      <primary-key name="PRIMARY" columns="id"/>
+      <index name="email" unique="false" columns="email"/>
+      <index name="idx_block" unique="false" columns="block"/>
+      <index name="idx_name" unique="false" columns="name"/>
+      <index name="username" unique="false" columns="username"/>
+    </table>
+  </data-source>
+</component>

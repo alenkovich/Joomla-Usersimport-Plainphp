@@ -8,7 +8,9 @@
 
 namespace userimportplainphp;
 
-
 class exporter {
-
+    public function __construct() {
+        echo "In export constructor";
+    }
 }
+
