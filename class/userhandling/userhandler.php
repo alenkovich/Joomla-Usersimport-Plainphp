@@ -20,11 +20,14 @@ class Userhandler {
         if ($this->db->connect_error) {
             throw new \Exception("Database error: ". $this->db->connect_error);
         }
-        $prefix = $config->prefix;
+        $prefix = $config->prefix."_";
     }
 
     public function export($file) {
         // select all including groupmap (max 3)
+        if (($result = $this->db->query("SELET")) == 0) {
+            throw new \Exception("Database select error: ".$this->db->error);
+        }
 
         // write to file in csv format
 

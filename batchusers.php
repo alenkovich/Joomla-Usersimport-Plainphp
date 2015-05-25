@@ -6,7 +6,7 @@
  * @author  Henk Rijneveld
  * @version 0.0.1
  */
-use  userhandling\Userhandler;
+use  userhandling\userhandler;
 
 // constants
 define("CONFIGFILE", "batchusers.json");
@@ -20,6 +20,7 @@ $file = "export.csv";
 
 // autoloader
 spl_autoload_register(function ($class) {
+    $class = str_replace('\\', '/', $class);
     include 'class/' . $class . '.php';
 });
 
@@ -93,6 +94,9 @@ if ($mode == MODE_UNDEFINED) {
 // Do the actual work
 try {
     $a = new Userhandler($config);
+    if ($mode == MODE_EXPORT) {
+        $a->export($file);
+    }
 } catch (Exception $e) {
     die($e->getMessage());
 }
