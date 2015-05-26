@@ -48,12 +48,12 @@ class Userhandler {
 
         // write data
         while ($row = $result->fetch_row()) {
-            // get grouptitles
-            if (($groupResult = $this->db->query("SELECT j_usergroups.title FROM j_user_usergroup_map INNER JOIN j_usergroups ON j_user_usergroup_map.group_id = j_usergroups.id WHERE user_id = $row[0] LIMIT 3")) === FALSE) {
+            // get group titles
+            if (($groupResult = $this->db->query("SELECT $this->tbl_groups.title FROM $this->tbl_map INNER JOIN $this->tbl_groups ON $this->tbl_map.group_id = $this->tbl_groups.id WHERE user_id = $row[0] LIMIT 3")) === FALSE) {
                 throw new \Exception("Database select error: ".$this->db->error);
             }
-            while ($grouprow = $groupResult->fetch_row()) {
-                $row[]= $grouprow[0];
+            while ($groupRow = $groupResult->fetch_row()) {
+                $row[]= $groupRow[0];
             }
             $groupResult->close();
             fputcsv($ofile, $row);
@@ -75,7 +75,7 @@ class Userhandler {
     public function import($file) {
 
 
-
+        // password_hash($password, PASSWORD_DEFAULT);
 
 
 
