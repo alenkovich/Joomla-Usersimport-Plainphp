@@ -65,23 +65,86 @@ class Userhandler {
         fclose($ofile);
     }
 
-
     //  import is NOT compatible with export (!)
     //
     // fields in csv format:
-    //   name, username, password, group-1, group-2, group-3
+    //   name, username, email, password, group-1, group-2, group-3
     //
     // Groups are reference by title, so must exist in target database
     public function import($file) {
+        // open file for reading
+        if (!($ifile = fopen($file, "r"))) {
+            throw new \Exception("Error reading file: ".$file);
+        }
 
+        // read first line. Needs special care because it is possibly a headerrow
+        $row = fgetcsv($ifile);
+        if ($row && ((strtolower(trim($row[0])) == "name") || (strtolower(trim($row[0])) == "naam"))) {
+            // assume first row is a header row
+            $row = fgetcsv($ifile);
+        }
 
-        // password_hash($password, PASSWORD_DEFAULT);
+        // process all rows
+        $numRows = 0;
+        do {
+            $numRows += $this->importRow($row);
+        } while ($row = fgetcsv($ifile));
 
-
-
-
+        // close
+        fclose($ifile);
+        echo "Rows imported: ".$numRows;
     }
 
+    // @return: number of rows imported
+    private function importRow($row) {
+        // need at least 4 fields, so sanitize
+        if (!$row || count($row) < 5 ) {
+            return 0;
+        }
+
+        // Insert user, no error or duplicat checking for fields (username and email)
+        $user = array(
+            'name' => $row[0],
+            'username' => $row[1],
+            'email' => $row[2],
+            'password' => password_hash($row[3], PASSWORD_DEFAULT),
+            'block' => 0,
+            'sendEmail' => 1,
+            'registerDate' => date("Y-m-d H:i:s"),
+            'lastvisitDate' => "0000-00-00 00:00:00",
+            'activation' => 0,
+            'params' => '{"admin_style":"","admin_language":"","language":"","editor":"","helpsite":"","timezone":""}',
+            'lastResetTime' => "0000-00-00 00:00:00",
+            'resetCount' => 0,
+            'otpKey' => '',
+            'otep' => '',
+            'requireReset' => 0
+        );
+        $this->insertRow($user, $this->tbl_users);
+
+        // Find the groups and insert map rows
+
+
+        // conclude
+        return 1;
+    }
+
+    private function insertRow($data, $table) {
+        $cols = implode(',', array_keys($data));
+        $values = implode(
+            ',',
+            array_map(
+                function ($el) {
+                    return '\''.$this->db->real_escape_string($el).'\'';
+                },
+                array_values($data)
+            )
+        );
+
+        if (!$this->db->query('INSERT INTO '.$table.' ('.$cols.') VALUES ('.$values.')')) {
+            throw new \Exception("Database insert error: ".$this->db->error);
+        }
+    }
 
     public function close() {
         if (!$this->db) {

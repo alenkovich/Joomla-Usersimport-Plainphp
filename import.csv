@@ -1,0 +1,3 @@
+name,username,email,password,group-1,group-2,group-3
+henk,hrijne,henk@localhost.com,sprenkel,"Super Users"
+piet,hpietje,hpietje@localhost.com,helhond,"Public","Registered","Author"

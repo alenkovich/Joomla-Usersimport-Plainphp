@@ -97,6 +97,9 @@ try {
     if ($mode == MODE_EXPORT) {
         $a->export($file);
     }
+    if ($mode == MODE_IMPORT) {
+        $a->import($file);
+    }
 } catch (Exception $e) {
     die($e->getMessage());
 }
