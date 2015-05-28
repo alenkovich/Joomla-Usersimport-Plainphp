@@ -101,6 +101,10 @@ class Userhandler {
         if (!$row || count($row) < 5 ) {
             return 0;
         }
+        // check if userid and email already exist
+        if (!$this->checkUser($row[1], $row[2])) {
+            return 0;
+        }
 
         // Insert user, no error or duplicat checking for fields (username and email)
         $user = array(
@@ -120,16 +124,50 @@ class Userhandler {
             'otep' => '',
             'requireReset' => 0
         );
-        $this->insertRow($user, $this->tbl_users);
+        $this->insertTableRow($user, $this->tbl_users);
 
         // Find the groups and insert map rows
-
+        $this->insertMap($this->db->insert_id, array_slice($row, 4));
 
         // conclude
         return 1;
     }
 
-    private function insertRow($data, $table) {
+    private function checkUser($username, $email) {
+        $username = $this->db->real_escape_string($username);
+        $email = $this->db->real_escape_string($email);
+        if (($result = $this->db->query("SELECT username, email FROM $this->tbl_users WHERE username='$username' OR email='$email'")) === FALSE) {
+            throw new \Exception("Database select error: ".$this->db->error);
+        }
+        if ($result->num_rows != 0) {
+            echo "User: $username or Email: $email allready present in usertable, ignored\n";
+            return False;
+        }
+        return True;
+    }
+
+    private function insertMap($userId, $groupNames) {
+        foreach($groupNames as $groupName) {
+            $group = $this->db->real_escape_string($groupName);
+            if (($result = $this->db->query("SELECT id FROM $this->tbl_groups WHERE title='$group'")) === FALSE) {
+                throw new \Exception("Groupname ".$group." database select error: ".$this->db->error);
+            }
+            if ($result->num_rows == 0) {
+                echo "Group $groupName not found for userid $userId, ignored";
+                $result->close();
+                continue;
+            }
+            $groupId = $result->fetch_row()[0];
+            $map = array(
+                "user_id" => $userId,
+                "group_id" => $groupId
+            );
+            $this->insertTableRow($map, $this->tbl_map);
+            $result->close();
+        }
+    }
+
+    private function insertTableRow($data, $table) {
         $cols = implode(',', array_keys($data));
         $values = implode(
             ',',
@@ -142,7 +180,7 @@ class Userhandler {
         );
 
         if (!$this->db->query('INSERT INTO '.$table.' ('.$cols.') VALUES ('.$values.')')) {
-            throw new \Exception("Database insert error: ".$this->db->error);
+            throw new \Exception("Database insert error on table $table: ".$this->db->error);
         }
     }
 
