@@ -15,8 +15,22 @@ class Userhandler {
     protected $tbl_users = "users";
     protected $tbl_groups = "usergroups";
     protected $tbl_map = "user_usergroup_map";
+    protected $exitOnError = false;
+    protected $numRows = 0;
+    protected $numImportedRows = 0;
 
-    public function __construct($config) {
+    static function makeConfig($ip, $db, $port, $user, $password, $prefix) {
+        $a = new \stdClass();
+        $a->ip = $ip;
+        $a->db = $db;
+        $a->port = $port;
+        $a->password = $password;
+        $a->user = $user;
+        $a->$prefix = $prefix;
+        return($a);
+    }
+
+    public function __construct($config, $exit = false) {
         $this->db = @new \mysqli($config->ip, $config->user, $config->password, $config->db, $config->port);
         if ($this->db->connect_error) {
             throw new \Exception("Database error: ". $this->db->connect_error);
@@ -25,6 +39,7 @@ class Userhandler {
         $this->tbl_users = $prefix.$this->tbl_users;
         $this->tbl_groups = $prefix.$this->tbl_groups;
         $this->tbl_map = $prefix.$this->tbl_map;
+        $this->exitOnError = $exit;
     }
 
     public function export($file) {
@@ -60,7 +75,7 @@ class Userhandler {
         }
 
         // and close
-        echo "Rows selected: ".$result->num_rows;
+        $this->writeLogline("Rows selected: ".$result->num_rows);
         $result->close();
         fclose($ofile);
     }
@@ -78,31 +93,36 @@ class Userhandler {
         }
 
         // read first line. Needs special care because it is possibly a headerrow
+        $this->numRows = 0;
         $row = fgetcsv($ifile);
         if ($row && ((strtolower(trim($row[0])) == "name") || (strtolower(trim($row[0])) == "naam"))) {
             // assume first row is a header row
+            $this->numRows++;
             $row = fgetcsv($ifile);
         }
 
         // process all rows
-        $numRows = 0;
+        $this->numImportedRows = 0;
         do {
-            $numRows += $this->importRow($row);
+            $this->numImportedRows += $this->importRow($row, $this->numRows);
+            $this->numRows++;
         } while ($row = fgetcsv($ifile));
 
         // close
         fclose($ifile);
-        echo "Rows imported: ".$numRows;
+        $this->writeLogline("Rows imported: ".$this->numImportedRows);
     }
 
     // @return: number of rows imported
-    private function importRow($row) {
+    private function importRow($row, $numRows) {
         // need at least 4 fields, so sanitize
         if (!$row || count($row) < 5 ) {
+            $this->writeLogline("Invalid row ".$numRows.", ignored", true);
             return 0;
         }
         // check if userid and email already exist
         if (!$this->checkUser($row[1], $row[2])) {
+            $this->writeLogline("User: $row[1] or Email: $row[2] allready present in usertable on import row $numRows, ignored", true);
             return 0;
         }
 
@@ -127,7 +147,7 @@ class Userhandler {
         $this->insertTableRow($user, $this->tbl_users);
 
         // Find the groups and insert map rows
-        $this->insertMap($this->db->insert_id, array_slice($row, 4));
+        $this->insertMap($this->db->insert_id, array_slice($row, 4), $numRows);
 
         // conclude
         return 1;
@@ -140,20 +160,20 @@ class Userhandler {
             throw new \Exception("Database select error: ".$this->db->error);
         }
         if ($result->num_rows != 0) {
-            echo "User: $username or Email: $email allready present in usertable, ignored\n";
             return False;
         }
         return True;
     }
 
-    private function insertMap($userId, $groupNames) {
+    private function insertMap($userId, $groupNames, $numRows) {
+        $mapsFound = 0;
         foreach($groupNames as $groupName) {
             $group = $this->db->real_escape_string($groupName);
             if (($result = $this->db->query("SELECT id FROM $this->tbl_groups WHERE title='$group'")) === FALSE) {
                 throw new \Exception("Groupname ".$group." database select error: ".$this->db->error);
             }
             if ($result->num_rows == 0) {
-                echo "Group $groupName not found for userid $userId, ignored";
+                $this->writeLogline("Group $groupName not found in row $numRows, ignored", true);
                 $result->close();
                 continue;
             }
@@ -163,7 +183,11 @@ class Userhandler {
                 "group_id" => $groupId
             );
             $this->insertTableRow($map, $this->tbl_map);
+            $mapsFound++;
             $result->close();
+        }
+        if (!$mapsFound) {
+            $this->writeLogline("* No valid groupmap added on row $numRows");
         }
     }
 
@@ -184,6 +208,13 @@ class Userhandler {
         }
     }
 
+    private function writeLogline($line, $error = false) {
+        if ($error && $this->exitOnError) {
+            throw new \Exception($line."\n$this->numImportedRows rows completely imported");
+        }
+        echo $line."\n";
+    }
+
     public function close() {
         if (!$this->db) {
             $this->db->close();
@@ -194,5 +225,4 @@ class Userhandler {
     public function __destruct() {
         $this->close();
     }
-
 }
